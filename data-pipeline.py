@@ -1,4 +1,3 @@
-#tushar 
 def load_class_ids(class_info_file_path):
     """
     Load class ids from class_info.pickle file
