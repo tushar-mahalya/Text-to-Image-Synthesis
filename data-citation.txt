@@ -1,0 +1,12 @@
+Data Citation -
+Title = CUB-200-2011
+Author = C. Wah, S. Branson, P. Welinder, P. Perona & S. Belongie
+Year = 2011
+Publisher = CaltechDATA
+Institution = California Institute of Technology
+Number = CNS-TR-2011-001
+Published = April 11, 2022
+Version = 1.0
+Official Website = https://data.caltech.edu/records/65de6-vp158
+Dataset Link = https://data.caltech.edu/records/65de6-vp158/files/CUB_200_2011.tgz?download=1
+
