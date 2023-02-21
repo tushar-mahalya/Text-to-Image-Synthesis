@@ -4,7 +4,7 @@ def KL_loss(y_true, y_pred):
     loss = -logsigma + .5 * (-1 + K.exp(2. * logsigma) + K.square(mean))
     loss = K.mean(loss)
     return loss
-    
+
 
 def custom_generator_loss(y_true, y_pred):
     # Calculate binary cross entropy loss

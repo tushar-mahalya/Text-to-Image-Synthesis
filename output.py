@@ -10,7 +10,8 @@ def save_rgb_img(img, path):
 
     plt.savefig(path)
     plt.close()
-    
+
+
 def write_log(callback, name, loss, batch_no):
     """
     Write training summary to TensorBoard

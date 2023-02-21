@@ -5,7 +5,8 @@ def generate_c(x):
     epsilon = K.random_normal(shape=K.constant((mean.shape[1],), dtype='int32'))
     c = stddev * epsilon + mean
     return c
-  
+
+
 def build_ca_model():
     """
     Get conditioning augmentation model.
@@ -16,7 +17,8 @@ def build_ca_model():
     x = LeakyReLU(alpha=0.2)(x)
     model = Model(inputs=[input_layer], outputs=[x])
     return model
-  
+
+
 def build_embedding_compressor_model():
     """
     Build embedding compressor model
@@ -27,7 +29,8 @@ def build_embedding_compressor_model():
 
     model = Model(inputs=[input_layer], outputs=[x])
     return model
-  
+
+
 def build_stage1_generator():
     """
     Builds a generator model used in Stage-I
@@ -73,6 +76,7 @@ def build_stage1_generator():
     stage1_gen = Model(inputs=[input_layer, input_layer2], outputs=[x, mean_logsigma])
     return stage1_gen
 
+
 def build_stage1_discriminator():
     """
     Create a model which takes two inputs
@@ -114,6 +118,7 @@ def build_stage1_discriminator():
     stage1_dis = Model(inputs=[input_layer, input_layer2], outputs=[x2])
     return stage1_dis
 
+
 def residual_block(input):
     """
     Residual block in the generator network
@@ -130,6 +135,7 @@ def residual_block(input):
 
     return x
 
+
 def joint_block(inputs):
     c = inputs[0]
     x = inputs[1]
@@ -138,6 +144,7 @@ def joint_block(inputs):
     c = K.expand_dims(c, axis=1)
     c = K.tile(c, [1, 16, 16, 1])
     return K.concatenate([c, x], axis=3)
+
 
 def build_stage2_generator():
     """
@@ -162,7 +169,7 @@ def build_stage2_generator():
     x = Conv2D(256, kernel_size=(4, 4), strides=2, use_bias=False)(x)
     x = BatchNormalization()(x)
     x = ReLU()(x)
-    
+
     x = ZeroPadding2D(padding=(1, 1))(x)
     x = Conv2D(512, kernel_size=(4, 4), strides=2, use_bias=False)(x)
     x = BatchNormalization()(x)
@@ -209,6 +216,7 @@ def build_stage2_generator():
     model = Model(inputs=[input_layer, input_lr_images], outputs=[x, mean_logsigma])
     return model
 
+
 def build_stage2_discriminator():
     """
     Create Stage-II discriminator network
@@ -229,7 +237,7 @@ def build_stage2_discriminator():
     x = Conv2D(512, (4, 4), padding='same', strides=2, use_bias=False)(x)
     x = BatchNormalization()(x)
     x = LeakyReLU(alpha=0.2)(x)
-    
+
     x = Conv2D(1024, (4, 4), padding='same', strides=2, use_bias=False)(x)
     x = BatchNormalization()(x)
     x = LeakyReLU(alpha=0.2)(x)
@@ -272,7 +280,8 @@ def build_stage2_discriminator():
 
     stage2_dis = Model(inputs=[input_layer, input_layer2], outputs=[x3])
     return stage2_dis
-  
+
+
 def build_adversarial_model(gen_model, dis_model):
     input_layer = Input(shape=(1024,))
     input_layer2 = Input(shape=(100,))

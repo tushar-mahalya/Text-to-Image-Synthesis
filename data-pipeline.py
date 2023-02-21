@@ -5,7 +5,8 @@ def load_class_ids(class_info_file_path):
     with open(class_info_file_path, 'rb') as f:
         class_ids = pickle.load(f, encoding='latin1')
         return class_ids
-      
+
+
 def load_embeddings(embeddings_file_path):
     """
     Load embeddings
@@ -15,7 +16,8 @@ def load_embeddings(embeddings_file_path):
         embeddings = np.array(embeddings)
         print('embeddings: ', embeddings.shape)
     return embeddings
- 
+
+
 def load_filenames(filenames_file_path):
     """
     Load filenames.pickle file and return a list of all file names
@@ -23,7 +25,8 @@ def load_filenames(filenames_file_path):
     with open(filenames_file_path, 'rb') as f:
         filenames = pickle.load(f, encoding='latin1')
     return filenames
- 
+
+
 def load_bounding_boxes(dataset_dir):
     """
     Load bounding boxes and return a dictionary of file names and corresponding bounding boxes
@@ -52,6 +55,7 @@ def load_bounding_boxes(dataset_dir):
 
     return filename_boundingbox_dict
 
+
 def get_img(img_path, bbox, image_size):
     """
     Load and resize image
@@ -69,7 +73,8 @@ def get_img(img_path, bbox, image_size):
         img = img.crop([x1, y1, x2, y2])
     img = img.resize(image_size, PIL.Image.BILINEAR)
     return img
- 
+
+
 def load_dataset(filenames_file_path, class_info_file_path, cub_dataset_dir, embeddings_file_path, image_size):
     """
     Load dataset
