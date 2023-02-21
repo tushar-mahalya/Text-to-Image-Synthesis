@@ -73,6 +73,72 @@ def build_stage1_generator():
     stage1_gen = Model(inputs=[input_layer, input_layer2], outputs=[x, mean_logsigma])
     return stage1_gen
 
+def build_stage1_discriminator():
+    """
+    Create a model which takes two inputs
+    1. One from above network
+    2. One from the embedding layer
+    3. Concatenate along the axis dimension and feed it to the last module which produces final logits
+    """
+    input_layer = Input(shape=(64, 64, 3))
+
+    x = Conv2D(64, (4, 4),
+               padding='same', strides=2,
+               input_shape=(64, 64, 3), use_bias=False)(input_layer)
+    x = LeakyReLU(alpha=0.2)(x)
+
+    x = Conv2D(128, (4, 4), padding='same', strides=2, use_bias=False)(x)
+    x = BatchNormalization()(x)
+    x = LeakyReLU(alpha=0.2)(x)
+
+    x = Conv2D(256, (4, 4), padding='same', strides=2, use_bias=False)(x)
+    x = BatchNormalization()(x)
+    x = LeakyReLU(alpha=0.2)(x)
+
+    x = Conv2D(512, (4, 4), padding='same', strides=2, use_bias=False)(x)
+    x = BatchNormalization()(x)
+    x = LeakyReLU(alpha=0.2)(x)
+
+    input_layer2 = Input(shape=(4, 4, 128))
+
+    merged_input = concatenate([x, input_layer2])
+
+    x2 = Conv2D(64 * 8, kernel_size=1,
+                padding="same", strides=1)(merged_input)
+    x2 = BatchNormalization()(x2)
+    x2 = LeakyReLU(alpha=0.2)(x2)
+    x2 = Flatten()(x2)
+    x2 = Dense(1)(x2)
+    x2 = Activation('sigmoid')(x2)
+
+    stage1_dis = Model(inputs=[input_layer, input_layer2], outputs=[x2])
+    return stage1_dis
+
+def residual_block(input):
+    """
+    Residual block in the generator network
+    """
+    x = Conv2D(128 * 4, kernel_size=(3, 3), padding='same', strides=1)(input)
+    x = BatchNormalization()(x)
+    x = ReLU()(x)
+
+    x = Conv2D(128 * 4, kernel_size=(3, 3), strides=1, padding='same')(x)
+    x = BatchNormalization()(x)
+
+    x = add([x, input])
+    x = ReLU()(x)
+
+    return x
+
+def joint_block(inputs):
+    c = inputs[0]
+    x = inputs[1]
+
+    c = K.expand_dims(c, axis=1)
+    c = K.expand_dims(c, axis=1)
+    c = K.tile(c, [1, 16, 16, 1])
+    return K.concatenate([c, x], axis=3)
+
 def build_stage2_generator():
     """
     Create Stage-II generator containing the CA Augmentation Network,
@@ -142,47 +208,6 @@ def build_stage2_generator():
 
     model = Model(inputs=[input_layer, input_lr_images], outputs=[x, mean_logsigma])
     return model
-
-def build_stage1_discriminator():
-    """
-    Create a model which takes two inputs
-    1. One from above network
-    2. One from the embedding layer
-    3. Concatenate along the axis dimension and feed it to the last module which produces final logits
-    """
-    input_layer = Input(shape=(64, 64, 3))
-
-    x = Conv2D(64, (4, 4),
-               padding='same', strides=2,
-               input_shape=(64, 64, 3), use_bias=False)(input_layer)
-    x = LeakyReLU(alpha=0.2)(x)
-
-    x = Conv2D(128, (4, 4), padding='same', strides=2, use_bias=False)(x)
-    x = BatchNormalization()(x)
-    x = LeakyReLU(alpha=0.2)(x)
-
-    x = Conv2D(256, (4, 4), padding='same', strides=2, use_bias=False)(x)
-    x = BatchNormalization()(x)
-    x = LeakyReLU(alpha=0.2)(x)
-
-    x = Conv2D(512, (4, 4), padding='same', strides=2, use_bias=False)(x)
-    x = BatchNormalization()(x)
-    x = LeakyReLU(alpha=0.2)(x)
-
-    input_layer2 = Input(shape=(4, 4, 128))
-
-    merged_input = concatenate([x, input_layer2])
-
-    x2 = Conv2D(64 * 8, kernel_size=1,
-                padding="same", strides=1)(merged_input)
-    x2 = BatchNormalization()(x2)
-    x2 = LeakyReLU(alpha=0.2)(x2)
-    x2 = Flatten()(x2)
-    x2 = Dense(1)(x2)
-    x2 = Activation('sigmoid')(x2)
-
-    stage1_dis = Model(inputs=[input_layer, input_layer2], outputs=[x2])
-    return stage1_dis
 
 def build_stage2_discriminator():
     """
