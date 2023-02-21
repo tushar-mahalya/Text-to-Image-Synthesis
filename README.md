@@ -7,6 +7,9 @@ This markdown code provides information about the hardware configuration used fo
 | Hardware Component | Specification |
 | ------------------ | ------------ |
 | Instance Type | ml.t3.medium |
-| vCPUs | 2 |
-| Memory | 4 GiB |
-| Storage | 8 GiB |
+| Processor | Intel(R) Xeon(R) Platinum 8259CL |
+| GPU | Nvidia(R) Tesla T4 |
+| RAM | 16 GiB |
+| GPU RAM | 15 GiB |
+| CPU Cores | 8 |
+| Storage | 15 GiB |
