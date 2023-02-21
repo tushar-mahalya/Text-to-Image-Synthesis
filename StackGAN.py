@@ -31,6 +31,15 @@ def build_embedding_compressor_model():
     return model
 
 
+def upsampling_block(input):
+
+    x = UpSampling2D(size=(2, 2))(input)
+    x = Conv2D(512, kernel_size=3, padding="same", strides=1, use_bias=False)(x)
+    x = BatchNormalization()(x)
+    x = ReLU()(x)
+    return x
+
+
 def build_stage1_generator():
     """
     Builds a generator model used in Stage-I
@@ -50,25 +59,10 @@ def build_stage1_generator():
 
     x = Reshape((4, 4, 128 * 8), input_shape=(128 * 8 * 4 * 4,))(x)
 
-    x = UpSampling2D(size=(2, 2))(x)
-    x = Conv2D(512, kernel_size=3, padding="same", strides=1, use_bias=False)(x)
-    x = BatchNormalization()(x)
-    x = ReLU()(x)
-
-    x = UpSampling2D(size=(2, 2))(x)
-    x = Conv2D(256, kernel_size=3, padding="same", strides=1, use_bias=False)(x)
-    x = BatchNormalization()(x)
-    x = ReLU()(x)
-
-    x = UpSampling2D(size=(2, 2))(x)
-    x = Conv2D(128, kernel_size=3, padding="same", strides=1, use_bias=False)(x)
-    x = BatchNormalization()(x)
-    x = ReLU()(x)
-
-    x = UpSampling2D(size=(2, 2))(x)
-    x = Conv2D(64, kernel_size=3, padding="same", strides=1, use_bias=False)(x)
-    x = BatchNormalization()(x)
-    x = ReLU()(x)
+    x = upsampling_block(x)
+    x = upsampling_block(x)
+    x = upsampling_block(x)
+    x = upsampling_block(x)
 
     x = Conv2D(3, kernel_size=3, padding="same", strides=1, use_bias=False)(x)
     x = Activation(activation='tanh')(x)
