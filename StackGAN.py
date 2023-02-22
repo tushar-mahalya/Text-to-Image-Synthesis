@@ -1,3 +1,9 @@
+from keras import Input, Model
+from keras import backend as K
+from keras.layers import Dense, LeakyReLU, BatchNormalization, ReLU, Reshape, UpSampling2D, add
+from keras.layers import ZeroPadding2D, Conv2D, Activation, concatenate, Flatten, Lambda, Concatenate
+
+
 def generate_c(x):
     mean = x[:, :128]
     log_sigma = x[:, 128:]
@@ -31,16 +37,15 @@ def build_embedding_compressor_model():
     return model
 
 
-def upsampling_block(input):
-
+def upsampling_block(input, filters):
     x = UpSampling2D(size=(2, 2))(input)
-    x = Conv2D(512, kernel_size=3, padding="same", strides=1, use_bias=False)(x)
+    x = Conv2D(filters, kernel_size=3, padding="same", strides=1, use_bias=False)(x)
     x = BatchNormalization()(x)
     x = ReLU()(x)
     return x
 
 
-def build_stage1_generator():
+def stage1_generator():
     """
     Builds a generator model used in Stage-I
     """
@@ -59,10 +64,10 @@ def build_stage1_generator():
 
     x = Reshape((4, 4, 128 * 8), input_shape=(128 * 8 * 4 * 4,))(x)
 
-    x = upsampling_block(x)
-    x = upsampling_block(x)
-    x = upsampling_block(x)
-    x = upsampling_block(x)
+    x = upsampling_block(x, 512)
+    x = upsampling_block(x, 512)
+    x = upsampling_block(x, 512)
+    x = upsampling_block(x, 512)
 
     x = Conv2D(3, kernel_size=3, padding="same", strides=1, use_bias=False)(x)
     x = Activation(activation='tanh')(x)
@@ -71,7 +76,7 @@ def build_stage1_generator():
     return stage1_gen
 
 
-def build_stage1_discriminator():
+def stage1_discriminator():
     """
     Create a model which takes two inputs
     1. One from above network
@@ -140,7 +145,7 @@ def joint_block(inputs):
     return K.concatenate([c, x], axis=3)
 
 
-def build_stage2_generator():
+def stage2_generator():
     """
     Create Stage-II generator containing the CA Augmentation Network,
     the image encoder and the generator network
@@ -184,25 +189,10 @@ def build_stage2_generator():
     x = residual_block(x)
 
     # 5. Upsampling blocks
-    x = UpSampling2D(size=(2, 2))(x)
-    x = Conv2D(512, kernel_size=3, padding="same", strides=1, use_bias=False)(x)
-    x = BatchNormalization()(x)
-    x = ReLU()(x)
-
-    x = UpSampling2D(size=(2, 2))(x)
-    x = Conv2D(256, kernel_size=3, padding="same", strides=1, use_bias=False)(x)
-    x = BatchNormalization()(x)
-    x = ReLU()(x)
-
-    x = UpSampling2D(size=(2, 2))(x)
-    x = Conv2D(128, kernel_size=3, padding="same", strides=1, use_bias=False)(x)
-    x = BatchNormalization()(x)
-    x = ReLU()(x)
-
-    x = UpSampling2D(size=(2, 2))(x)
-    x = Conv2D(64, kernel_size=3, padding="same", strides=1, use_bias=False)(x)
-    x = BatchNormalization()(x)
-    x = ReLU()(x)
+    x = upsampling_block(x, 512)
+    x = upsampling_block(x, 256)
+    x = upsampling_block(x, 128)
+    x = upsampling_block(x, 64)
 
     x = Conv2D(3, kernel_size=3, padding="same", strides=1, use_bias=False)(x)
     x = Activation('tanh')(x)
@@ -211,7 +201,7 @@ def build_stage2_generator():
     return model
 
 
-def build_stage2_discriminator():
+def stage2_discriminator():
     """
     Create Stage-II discriminator network
     """
@@ -276,7 +266,7 @@ def build_stage2_discriminator():
     return stage2_dis
 
 
-def build_adversarial_model(gen_model, dis_model):
+def adversarial_model(gen_model, dis_model):
     input_layer = Input(shape=(1024,))
     input_layer2 = Input(shape=(100,))
     input_layer3 = Input(shape=(4, 4, 128))
